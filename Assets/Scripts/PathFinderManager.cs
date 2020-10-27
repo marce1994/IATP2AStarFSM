@@ -1,11 +1,8 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.AStar;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Transactions;
-using UnityEditor.SceneManagement;
+using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class PathFinderManager : Singleton<PathFinderManager>
 {
@@ -13,18 +10,81 @@ public class PathFinderManager : Singleton<PathFinderManager>
     private PathNode[,] nodes;
     private float[,] noise;
 
+    public float wakableWeight = 0.3f;
+
+    public List<PathNode> Nodes
+    {
+        get { return nodes.Cast<PathNode>().ToList(); }
+    }
+
+    public Task<Vector3[]> FindPath(Vector3 origin, Vector3 destiny)
+    {
+        PathNode[,] nodes_clone = (PathNode[,])nodes.Clone();
+        var listNodes = nodes_clone.Cast<PathNode>().Where(x => x.walkable).ToList();
+
+        PathNode origNode = GetClosest(origin, listNodes);
+        PathNode destNode = GetClosest(destiny, listNodes);
+
+        var path = AStar.FindPath(nodes_clone, origNode, destNode);
+        
+        if (path == null)
+            return null; 
+
+        return Task.FromResult(path.Select(x => x.Position).ToArray());
+    }
+
+    private PathNode GetClosest(Vector3 startPosition, List<PathNode> allNodes)
+    {
+        PathNode bestTarget = null;
+        float closestDistanceSqr = Mathf.Infinity;
+
+        foreach (PathNode potentialTarget in allNodes)
+        {
+            Vector3 directionToTarget = potentialTarget.Position - startPosition;
+
+            float dSqrToTarget = directionToTarget.sqrMagnitude;
+
+            if (dSqrToTarget < closestDistanceSqr)
+            {
+                closestDistanceSqr = dSqrToTarget;
+                bestTarget = potentialTarget;
+            }
+        }
+
+        return bestTarget;
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
             Awake();
 
-        if (Input.GetMouseButton(0)) {
+        if (Input.GetMouseButton(0))
+        {
             Vector3 mouse = Input.mousePosition;
             Ray castPoint = Camera.main.ScreenPointToRay(mouse);
             RaycastHit hit;
             if (Physics.Raycast(castPoint, out hit, Mathf.Infinity))
             {
-                var path = FindPath(nodes[0, 0], nodes[Mathf.RoundToInt(hit.point.x), Mathf.RoundToInt(hit.point.z)]);
+                var nodeList = nodes.Cast<PathNode>().ToList();
+
+                var posx = Mathf.RoundToInt((sizeX / 2) + hit.point.x);
+                var posy = Mathf.RoundToInt((sizeZ / 2) + hit.point.y);
+
+                PathNode destNode = null;
+
+                try
+                {
+                    destNode = nodes[posx, posy];
+                }
+                catch (System.Exception)
+                {
+                    Debug.LogWarning("Clicked out of node grid");
+                }
+
+                if (destNode == null) return;
+
+                var path = AStar.FindPath(nodes, nodes[0, 0], destNode);
                 if (path != null)
                 {
                     for (int i = 0; i < path.Count(); i++)
@@ -50,9 +110,9 @@ public class PathFinderManager : Singleton<PathFinderManager>
             {
                 PathNode pathNode = nodes[i, j];
                 Vector3 size = Vector3.one * .9f;
-                size.y = 0;
-                Gizmos.color = new Color(noise[i, j] > .5f? 0:1, noise[i, j], 0);
-                Gizmos.DrawCube(pathNode.Position, size);
+                size.z = 0;
+                //Gizmos.color = new Color(noise[i, j] > wakableWeight ? 0 : 1, noise[i, j], 0, 0.3f);
+                //Gizmos.DrawCube(pathNode.Position, size);
                 Gizmos.color = Color.blue;
                 Gizmos.DrawSphere(pathNode.Position, .05f);
 
@@ -73,7 +133,7 @@ public class PathFinderManager : Singleton<PathFinderManager>
 
         noiseGenerator.offsetX = Random.Range(100, 99999);
         noiseGenerator.offsetY = Random.Range(100, 99999);
-        noiseGenerator.scale = 2f;
+        noiseGenerator.scale = 5f;
 
         noise = noiseGenerator.GenerateNoise();
 
@@ -81,8 +141,10 @@ public class PathFinderManager : Singleton<PathFinderManager>
         {
             for (int j = 0; j < sizeZ; j++)
             {
-                nodes[i, j] = new PathNode(new Vector3(i, 0, j));
-                nodes[i, j].walkable = noise[i, j] > 0.5f;
+                nodes[i, j] = new PathNode(new Vector3((-sizeX / 2) + i, (-sizeZ / 2 + j), 0));
+                nodes[i, j].walkable = noise[i, j] > wakableWeight;
+                var go = Instantiate(nodes[i, j].walkable? GameManager.Instance.walkableTilePrefab : GameManager.Instance.nonWalkableTilePrefab);
+                go.transform.position = nodes[i, j].Position;
             }
         }
 
@@ -90,7 +152,7 @@ public class PathFinderManager : Singleton<PathFinderManager>
         {
             for (int j = 0; j < sizeZ; j++)
             {
-                IEnumerable<PathNode> neightbors = GetNeightbors(ref nodes,i, j);
+                IEnumerable<PathNode> neightbors = BuildNeightbors(ref nodes, i, j);
                 foreach (var neightbor in neightbors)
                 {
                     nodes[i, j].AddChild(neightbor);
@@ -99,71 +161,7 @@ public class PathFinderManager : Singleton<PathFinderManager>
         }
     }
 
-    public IEnumerable<PathNode> FindPath(PathNode start, PathNode end)
-    {
-        var open = new List<PathNode>() { start };
-        var close = new List<PathNode>();
-
-        for (int i = 0; i < sizeX; i++)
-        {
-            for (int j = 0; j < sizeZ; j++)
-            {
-                nodes[i, j].gCost = int.MaxValue;
-                nodes[i, j].parent = null;
-            }
-        }
-
-        start.gCost = 0;
-        start.hCost = Mathf.RoundToInt(Vector3.Distance(start.Position, end.Position));
-
-        while (open.Any()) {
-            PathNode currentNode = open.First(x => x.fCost == open.Min(y => y.fCost));
-            if (currentNode == end)
-                return CalculatePath(end);
-
-            open.Remove(currentNode);
-            close.Add(currentNode);
-
-            foreach (var neightor in currentNode.Neightbors)
-            {
-                Debug.DrawLine(neightor.Position, currentNode.Position, Color.cyan, 1f);
-
-                if (close.Contains(neightor)) continue;
-
-                int tentativeGCost = currentNode.GetGCost(neightor);
-                if (tentativeGCost < neightor.gCost)
-                {
-                    neightor.parent = currentNode;
-                    neightor.gCost = tentativeGCost;
-                    neightor.hCost = Mathf.RoundToInt(Vector3.Distance(neightor.Position, end.Position));
-
-                    if (!open.Contains(neightor) && neightor.walkable) {
-                        open.Add(neightor);
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private List<PathNode> CalculatePath(PathNode end) {
-        List<PathNode> pathNodes = new List<PathNode>();
-
-        pathNodes.Add(end);
-
-        PathNode pathNode = end;
-        while (pathNode.parent != null) {
-            pathNodes.Add(pathNode.parent);
-            pathNode = pathNode.parent;
-        }
-
-        pathNodes.Reverse();
-
-        return pathNodes;
-    }
-
-    private IEnumerable<PathNode> GetNeightbors(ref PathNode[,] nodes, int i, int j)
+    private IEnumerable<PathNode> BuildNeightbors(ref PathNode[,] nodes, int i, int j)
     {
         List<PathNode> pathNodes = new List<PathNode>();
 
@@ -177,59 +175,12 @@ public class PathFinderManager : Singleton<PathFinderManager>
                 {
                     if (x != i || y != j)
                     {
-                        pathNodes.Add(nodes[x,y]);
+                        pathNodes.Add(nodes[x, y]);
                     }
                 }
             }
         }
 
         return pathNodes;
-    }
-}
-
-public class PathNode {
-    private Vector3 position;
-    private List<PathNode> childNodes;
-    private Dictionary<int, int> distances;
-
-    public bool walkable = true;
-    public PathNode parent;
-
-    public int hCost = 0;
-    public int gCost = int.MaxValue;
-
-    public int fCost
-    {
-        get { return hCost + gCost; }
-    }
-
-
-    public IEnumerable<PathNode> Neightbors
-    {
-        get { return childNodes; }
-    }
-
-    public Vector3 Position {
-        get { return position; }
-    }
-
-    public PathNode(Vector3 position) {
-        this.position = position;
-        childNodes = new List<PathNode>();
-        distances = new Dictionary<int, int>();
-    }
-
-    public void AddChild(PathNode pathNode) {
-        int distance = Mathf.RoundToInt(Vector3.Distance(pathNode.Position, position) * 10);
-        distances.Add(childNodes.Count, distance);
-        childNodes.Add(pathNode);
-    }
-
-    public void RemoveChild(PathNode pathNode) {
-        childNodes.Remove(pathNode);
-    }
-
-    public int GetGCost(PathNode pathNode) {
-        return gCost + distances[childNodes.IndexOf(pathNode)];
     }
 }
