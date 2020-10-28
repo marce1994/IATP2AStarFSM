@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 
 public class Mine
@@ -11,7 +12,15 @@ public class Mine
     public bool Flagged
     {
         get { return flagged; }
-        set { flagged = value; }
+        set
+        {
+            var go = _gameObject.GetComponentsInChildren<SpriteRenderer>()
+                .Single(x => x.gameObject.name == "flag");
+
+            go.gameObject.SetActive(value);
+
+            flagged = value;
+        }
     }
 
     public GameObject gameObject

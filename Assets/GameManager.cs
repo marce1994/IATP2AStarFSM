@@ -72,7 +72,7 @@ public class GameManager : Singleton<GameManager>
 
     public Mine GetRandomFlaggedMine()
     {
-        return mines.Where(x => x.Flagged).ElementAt(UnityEngine.Random.Range(0, mines.Count() - 1));
+        return mines.Where(x => x.Flagged).ElementAt(Random.Range(0, mines.Count() - 1));
     }
 
     private new void OnDestroy()

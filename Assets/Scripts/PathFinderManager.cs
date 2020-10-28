@@ -17,6 +17,13 @@ public class PathFinderManager : Singleton<PathFinderManager>
         get { return nodes.Cast<PathNode>().ToList(); }
     }
 
+    public Task<Vector3[]> FindRandomPath(Vector3 origin)
+    {
+        PathNode[,] nodes_clone = (PathNode[,])nodes.Clone();
+        var listNodes = nodes_clone.Cast<PathNode>().Where(x => x.walkable).ToList();
+        return FindPath(origin, listNodes.ElementAt(Random.Range(0, listNodes.Count - 1)).Position);
+    }
+
     public Task<Vector3[]> FindPath(Vector3 origin, Vector3 destiny)
     {
         PathNode[,] nodes_clone = (PathNode[,])nodes.Clone();
