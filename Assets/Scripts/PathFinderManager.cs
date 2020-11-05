@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PathFinderManager : Singleton<PathFinderManager>
 {
@@ -15,6 +16,16 @@ public class PathFinderManager : Singleton<PathFinderManager>
     public List<PathNode> Nodes
     {
         get { return nodes.Cast<PathNode>().ToList(); }
+    }
+
+    public Vector3 RandomWalkablePosition
+    {
+        get
+        {
+            var walkable_nodes = nodes.Cast<PathNode>().Where(x => x.walkable);
+            var random_node = walkable_nodes.ElementAt(Random.Range(0, walkable_nodes.Count() - 1));
+            return random_node.Position;
+        }
     }
 
     public Task<Vector3[]> FindRandomPath(Vector3 origin)
@@ -33,9 +44,9 @@ public class PathFinderManager : Singleton<PathFinderManager>
         PathNode destNode = GetClosest(destiny, listNodes);
 
         var path = AStar.FindPath(nodes_clone, origNode, destNode);
-        
+
         if (path == null)
-            return null; 
+            return null;
 
         return Task.FromResult(path.Select(x => x.Position).ToArray());
     }
@@ -61,13 +72,18 @@ public class PathFinderManager : Singleton<PathFinderManager>
         return bestTarget;
     }
 
+    private int skipFrames = 30;
+    private int currFrames = 0;
+
     private void Update()
     {
+        currFrames++;
         if (Input.GetKeyDown(KeyCode.Space))
-            Awake();
+            SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
 
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && currFrames >= skipFrames)
         {
+            currFrames = 0;
             Vector3 mouse = Input.mousePosition;
             Ray castPoint = Camera.main.ScreenPointToRay(mouse);
             RaycastHit hit;
@@ -91,19 +107,20 @@ public class PathFinderManager : Singleton<PathFinderManager>
 
                 if (destNode == null) return;
 
-                var path = AStar.FindPath(nodes, nodes[0, 0], destNode);
-                if (path != null)
+                Instance.FindPath(nodes[0, 0].Position, destNode.Position).ContinueWith((res) =>
                 {
-                    for (int i = 0; i < path.Count(); i++)
-                    {
-                        var from = path.ElementAtOrDefault(i);
-                        var to = path.ElementAtOrDefault(i + 1);
-                        if (to != null)
-                        {
-                            Debug.DrawLine(from.Position, to.Position, Color.red, 0.01f);
-                        }
-                    }
-                }
+                    Debug.LogWarning(res);
+                    if (res.IsFaulted) return;
+                    if (res.Result == null) return;
+
+                    var go = new GameObject("LineRenderer");
+                    Debug.LogWarning("Line renderer");
+                    var lineRenderer = go.AddComponent<LineRenderer>();
+                    lineRenderer.positionCount = res.Result.Count();
+                    lineRenderer.SetPositions(res.Result);
+                    lineRenderer.material.color = Color.red;
+                    Destroy(go, 0.5f);
+                });
             }
         }
     }
@@ -118,8 +135,6 @@ public class PathFinderManager : Singleton<PathFinderManager>
                 PathNode pathNode = nodes[i, j];
                 Vector3 size = Vector3.one * .9f;
                 size.z = 0;
-                //Gizmos.color = new Color(noise[i, j] > wakableWeight ? 0 : 1, noise[i, j], 0, 0.3f);
-                //Gizmos.DrawCube(pathNode.Position, size);
                 Gizmos.color = Color.blue;
                 Gizmos.DrawSphere(pathNode.Position, .05f);
 
@@ -150,8 +165,9 @@ public class PathFinderManager : Singleton<PathFinderManager>
             {
                 nodes[i, j] = new PathNode(new Vector3((-sizeX / 2) + i, (-sizeZ / 2 + j), 0));
                 nodes[i, j].walkable = noise[i, j] > wakableWeight;
-                var go = Instantiate(nodes[i, j].walkable? GameManager.Instance.walkableTilePrefab : GameManager.Instance.nonWalkableTilePrefab);
+                var go = Instantiate(nodes[i, j].walkable ? GameManager.Instance.walkableTilePrefab : GameManager.Instance.nonWalkableTilePrefab);
                 go.transform.position = nodes[i, j].Position;
+                go.transform.parent = transform;
             }
         }
 

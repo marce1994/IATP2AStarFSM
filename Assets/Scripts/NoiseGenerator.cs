@@ -2,9 +2,9 @@
 
 public class NoiseGenerator
 {
-    int width = 25;
-    int height = 25;
-    
+    private int width = 25;
+    private int height = 25;
+
     public float scale = 20f;
 
     public float offsetX = 100f;
@@ -16,9 +16,10 @@ public class NoiseGenerator
         this.height = height;
     }
 
-    public float[,] GenerateNoise() {
+    public float[,] GenerateNoise()
+    {
         var result = new float[width, height];
-        
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -30,8 +31,8 @@ public class NoiseGenerator
         return result;
     }
 
-    float Calculate(int x, int y) {
-
+    float Calculate(int x, int y)
+    {
         float xCoord = (float)x / width * scale + offsetX;
         float yCoord = (float)y / height * scale + offsetY;
         return Mathf.PerlinNoise(xCoord, yCoord);

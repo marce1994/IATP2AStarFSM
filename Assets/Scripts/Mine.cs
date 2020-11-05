@@ -14,12 +14,16 @@ public class Mine
         get { return flagged; }
         set
         {
-            var go = _gameObject.GetComponentsInChildren<SpriteRenderer>()
-                .Single(x => x.gameObject.name == "flag");
-
-            go.gameObject.SetActive(value);
-
-            flagged = value;
+            try
+            {
+                var go = _gameObject.GetComponentsInChildren<SpriteRenderer>(includeInactive: true).Single(x => x.gameObject.name == "flag");
+                go.gameObject.SetActive(value);
+                flagged = value;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(e.Message);
+            }
         }
     }
 
@@ -45,6 +49,7 @@ public class Mine
         _position = position;
         _gameObject = GameObject.Instantiate(prefab);
         _gameObject.transform.position = _position;
+        Flagged = false;
     }
 
     public bool CanMine()
@@ -54,11 +59,22 @@ public class Mine
 
     public int CollectGold(int quantity)
     {
-        int quantityToCollect = Math.Max(_content - quantity, 0);
-        _content -= quantityToCollect;
+        int quantityToCollect;
+        if (_content - quantity <= 0)
+        {
+            quantityToCollect = _content;
+            _content = 0;
+        }
+        else
+        {
+            _content -= quantity;
+            quantityToCollect = quantity;
+        }
 
-        if (quantityToCollect == 0)
+        if (_content == 0)
             GameManager.Instance.DeleteMine(this);
+
+        Debug.LogWarning($"collected: {quantityToCollect}/{quantity}");
 
         return quantityToCollect;
     }

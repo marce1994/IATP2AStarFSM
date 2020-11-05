@@ -5,16 +5,16 @@ using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
 {
-    public float instantiateMineTime = 10f;
-    public float instantiateWorkerTime = 10f;
 
     private int gold = 0;
+    private List<Mine> mines = new List<Mine>();
 
-    List<Mine> mines = new List<Mine>();
-
+    public float instantiateMineTime = 10f;
+    public float instantiateWorkerTime = 10f;
     public GameObject minePrefab;
     public GameObject workerPrefab;
     public GameObject explorerPrefab;
+    public GameObject homePrefab;
 
     public GameObject nonWalkableTilePrefab;
     public GameObject walkableTilePrefab;
@@ -22,6 +22,11 @@ public class GameManager : Singleton<GameManager>
     public void AddGold(int gold)
     {
         this.gold += gold;
+    }
+
+    public Mine GetCollidedMine(GameObject collidedMine)
+    {
+        return mines.SingleOrDefault(x => x.gameObject == collidedMine);
     }
 
     private void Awake()
@@ -34,6 +39,12 @@ public class GameManager : Singleton<GameManager>
     IEnumerator InstantiateHome()
     {
         yield return new WaitForSeconds(5f);
+        Instantiate(homePrefab);
+
+        var walkable_nodes = PathFinderManager.Instance.Nodes.Where(x => x.walkable);
+        var home_position = walkable_nodes.ElementAt(Random.Range(0, walkable_nodes.Count() - 1)).Position;
+        homePrefab.transform.position = home_position;
+
         Debug.Log("InstantiateHome");
     }
 
@@ -44,7 +55,7 @@ public class GameManager : Singleton<GameManager>
             Debug.Log("InstantiateMine");
 
             var walkableNodes = PathFinderManager.Instance.Nodes.Where(x => x.walkable == true);
-            var randomPosition = UnityEngine.Random.Range(0, walkableNodes.Count() - 1);
+            var randomPosition = Random.Range(0, walkableNodes.Count() - 1);
             var node = walkableNodes.ElementAt(randomPosition);
 
             if (mines.Any(x => x.Position == node.Position)) continue;
@@ -56,23 +67,38 @@ public class GameManager : Singleton<GameManager>
 
     IEnumerator WorkerInstantiator(float time)
     {
+        int workerQuantity = 0;
+
         for (; ; )
         {
             yield return new WaitForSeconds(time);
-            if (gold < 50) continue;
+
+            if (gold < 10 && workerQuantity < 2)
+                continue;
+            workerQuantity++;
             Debug.Log("InstantiateWorker");
+            Instantiate(workerPrefab);
+            gold -= 10;
         }
     }
 
     public bool DeleteMine(Mine mine)
     {
-        Destroy(mine.gameObject, 0.1f);
+        Destroy(mine.gameObject);
         return mines.Remove(mine);
     }
 
     public Mine GetRandomFlaggedMine()
     {
-        return mines.Where(x => x.Flagged).ElementAt(Random.Range(0, mines.Count() - 1));
+        return mines
+            .Where(x => x.Flagged)
+            .ElementAtOrDefault(Random.Range(0, mines.Count() - 1));
+    }
+
+    public GameObject GetBase()
+    {
+        var bases = GameObject.FindGameObjectsWithTag("Base");
+        return bases.First();
     }
 
     private new void OnDestroy()
@@ -81,4 +107,3 @@ public class GameManager : Singleton<GameManager>
         base.OnDestroy();
     }
 }
-
