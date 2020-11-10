@@ -46,7 +46,7 @@ public class PathFinderManager : Singleton<PathFinderManager>
         var path = AStar.FindPath(nodes_clone, origNode, destNode);
 
         if (path == null)
-            return null;
+            return Task.FromResult<Vector3[]>(null);
 
         return Task.FromResult(path.Select(x => x.Position).ToArray());
     }

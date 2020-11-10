@@ -16,6 +16,9 @@ public class Mine
         {
             try
             {
+                if(value)
+                    UIManager.Instance.FlaggedMines++; //TODO: que bestia :v
+
                 var go = _gameObject.GetComponentsInChildren<SpriteRenderer>(includeInactive: true).Single(x => x.gameObject.name == "flag");
                 go.gameObject.SetActive(value);
                 flagged = value;
@@ -71,8 +74,10 @@ public class Mine
             quantityToCollect = quantity;
         }
 
-        if (_content == 0)
+        if (_content == 0) {
+            UIManager.Instance.FlaggedMines--; //TODO: que bestia :v
             GameManager.Instance.DeleteMine(this);
+        }
 
         Debug.LogWarning($"collected: {quantityToCollect}/{quantity}");
 

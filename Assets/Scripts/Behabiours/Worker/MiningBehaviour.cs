@@ -36,6 +36,8 @@ public class MiningBehaviour : StateMachineBehaviour
         collectedGold = 0;
     }
 
+    float mineTime = 0.25f;
+    float mineCurrentTime = 0f;
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         if (path == null)
@@ -46,8 +48,16 @@ public class MiningBehaviour : StateMachineBehaviour
 
         if (transform.position == path.Last())
         {
-            if (mine != null && mine.CanMine())
-                collectedGold += mine.CollectGold(Mathf.Max(0, 10 - collectedGold));
+            mineCurrentTime += Time.deltaTime;
+            if (mineCurrentTime < mineTime)
+                return;
+
+            if (mine != null && mine.CanMine() && collectedGold < 10)
+            {
+                mineCurrentTime = 0f;
+                collectedGold += mine.CollectGold(1);
+                return;
+            }
 
             if (collectedGold < 10)
             {

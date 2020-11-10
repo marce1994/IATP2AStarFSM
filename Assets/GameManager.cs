@@ -7,6 +7,17 @@ public class GameManager : Singleton<GameManager>
 {
 
     private int gold = 0;
+
+    private int Gold
+    {
+        get { return gold; }
+        set
+        {
+            gold = value;
+            UIManager.Instance.GoldCollected = gold;
+        }
+    }
+
     private List<Mine> mines = new List<Mine>();
 
     public float instantiateMineTime = 10f;
@@ -19,9 +30,31 @@ public class GameManager : Singleton<GameManager>
     public GameObject nonWalkableTilePrefab;
     public GameObject walkableTilePrefab;
 
+    public static int WORKER_COST = 10;
+    public static int EXPLORER_COST = 15;
+
+    private void Start()
+    {
+        Gold = 0;
+    }
+
     public void AddGold(int gold)
     {
-        this.gold += gold;
+        this.Gold += gold;
+    }
+
+    internal void BuyWorker()
+    {
+        Gold -= WORKER_COST;
+        Instantiate(workerPrefab);
+        UIManager.Instance.WorkerCount++;
+    }
+
+    internal void BuyExplorer()
+    {
+        Gold -= EXPLORER_COST;
+        Instantiate(explorerPrefab);
+        UIManager.Instance.ExplorerCount++;
     }
 
     public Mine GetCollidedMine(GameObject collidedMine)
@@ -33,7 +66,7 @@ public class GameManager : Singleton<GameManager>
     {
         StartCoroutine(InstantiateHome());
         StartCoroutine(MineInstantiator(instantiateMineTime));
-        StartCoroutine(WorkerInstantiator(instantiateWorkerTime));
+        //StartCoroutine(WorkerInstantiator(instantiateWorkerTime));
     }
 
     IEnumerator InstantiateHome()
@@ -65,22 +98,22 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    IEnumerator WorkerInstantiator(float time)
-    {
-        int workerQuantity = 0;
+    //IEnumerator WorkerInstantiator(float time)
+    //{
+    //    int workerQuantity = 0;
 
-        for (; ; )
-        {
-            yield return new WaitForSeconds(time);
+    //    for (; ; )
+    //    {
+    //        yield return new WaitForSeconds(time);
 
-            if (gold < 10 && workerQuantity < 2)
-                continue;
-            workerQuantity++;
-            Debug.Log("InstantiateWorker");
-            Instantiate(workerPrefab);
-            gold -= 10;
-        }
-    }
+    //        if (gold < 10 && workerQuantity < 2)
+    //            continue;
+    //        workerQuantity++;
+    //        Debug.Log("InstantiateWorker");
+    //        Instantiate(workerPrefab);
+    //        gold -= 10;
+    //    }
+    //}
 
     public bool DeleteMine(Mine mine)
     {
