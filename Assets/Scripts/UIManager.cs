@@ -1,13 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using System.Linq;
 using UnityEngine.UI;
 
 public class UIManager : Singleton<UIManager>
 {
     private Text textInterfaceLeft;
     private Text textInterfaceRight;
+    private Text otherDataText;
     private Button buy_worker;
     private Button buy_explorer;
 
@@ -55,6 +53,11 @@ public class UIManager : Singleton<UIManager>
             UpdateUI();
         }
     }
+
+    public void SetOtherDataText(string text)
+    {
+        otherDataText.text = text;
+    }
     
     private void Awake()
     {
@@ -63,6 +66,7 @@ public class UIManager : Singleton<UIManager>
 
         textInterfaceLeft = texts.Single(x => x.name == "ResourcesTextL");
         textInterfaceRight = texts.Single(x => x.name == "ResourcesTextR");
+        otherDataText = texts.Single(x => x.name == "OtherData");
 
         buy_worker = buttons.Single(x => x.name == "Worker");
         buy_explorer = buttons.Single(x => x.name == "Explorer");

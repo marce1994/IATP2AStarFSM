@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.AStar;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,15 +7,15 @@ using UnityEngine;
 public class GameManager : Singleton<GameManager>
 {
 
-    private int gold = 0;
+    private int _gold = 0;
 
     private int Gold
     {
-        get { return gold; }
+        get { return _gold; }
         set
         {
-            gold = value;
-            UIManager.Instance.GoldCollected = gold;
+            _gold = value;
+            UIManager.Instance.GoldCollected = _gold;
         }
     }
 
@@ -66,17 +67,13 @@ public class GameManager : Singleton<GameManager>
     {
         StartCoroutine(InstantiateHome());
         StartCoroutine(MineInstantiator(instantiateMineTime));
-        //StartCoroutine(WorkerInstantiator(instantiateWorkerTime));
     }
 
     IEnumerator InstantiateHome()
     {
         yield return new WaitForSeconds(5f);
         Instantiate(homePrefab);
-
-        var walkable_nodes = PathFinderManager.Instance.Nodes.Where(x => x.walkable);
-        var home_position = walkable_nodes.ElementAt(Random.Range(0, walkable_nodes.Count() - 1)).Position;
-        homePrefab.transform.position = home_position;
+        homePrefab.transform.position = PathFinderManager.Instance.RandomWalkablePosition;
 
         Debug.Log("InstantiateHome");
     }
@@ -87,33 +84,15 @@ public class GameManager : Singleton<GameManager>
         {
             Debug.Log("InstantiateMine");
 
-            var walkableNodes = PathFinderManager.Instance.Nodes.Where(x => x.walkable == true);
-            var randomPosition = Random.Range(0, walkableNodes.Count() - 1);
-            var node = walkableNodes.ElementAt(randomPosition);
+            IEnumerable<PathNode> walkableNodes = PathFinderManager.Instance.Nodes.Where(x => x.walkable == true);
+            PathNode node = walkableNodes.ElementAt(Random.Range(0, walkableNodes.Count() - 1));
 
-            if (mines.Any(x => x.Position == node.Position)) continue;
+            if (mines.Any(x => x.Position.Equals(node.Position))) continue;
 
             mines.Add(new Mine(node.Position, minePrefab));
             yield return new WaitForSeconds(time);
         }
     }
-
-    //IEnumerator WorkerInstantiator(float time)
-    //{
-    //    int workerQuantity = 0;
-
-    //    for (; ; )
-    //    {
-    //        yield return new WaitForSeconds(time);
-
-    //        if (gold < 10 && workerQuantity < 2)
-    //            continue;
-    //        workerQuantity++;
-    //        Debug.Log("InstantiateWorker");
-    //        Instantiate(workerPrefab);
-    //        gold -= 10;
-    //    }
-    //}
 
     public bool DeleteMine(Mine mine)
     {

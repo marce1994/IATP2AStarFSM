@@ -16,7 +16,7 @@ public class NoiseGenerator
         this.height = height;
     }
 
-    public float[,] GenerateNoise()
+    public float[,] GetNoise()
     {
         var result = new float[width, height];
 

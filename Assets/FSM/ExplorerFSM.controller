@@ -36,6 +36,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24748d8765456ae409514911c8c2a81b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-5424529994515054746
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de4e1b5a3d0acb342a3846c7a930bd34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1101 &-2426083006041179588
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
@@ -125,7 +137,7 @@ AnimatorController:
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   m_AnimatorLayers:
   - serializedVersion: 5
     m_Name: Base Layer
@@ -202,7 +214,7 @@ AnimatorState:
   m_Transitions:
   - {fileID: 6088048141108746603}
   m_StateMachineBehaviours:
-  - {fileID: -7758120880642919460}
+  - {fileID: -5424529994515054746}
   m_Position: {x: 50, y: 50, z: 0}
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1

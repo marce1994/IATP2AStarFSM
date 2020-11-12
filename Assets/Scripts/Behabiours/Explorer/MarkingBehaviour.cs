@@ -1,32 +1,46 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class MarkingBehaviour : StateMachineBehaviour
 {
-    private ExplorerDetector _explorerDetector;
+    private MineDetector explorerDetector;
+    private PathWalker pathWalker;
+    private TextMesh behaviourDisplay;
 
-    override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    override public async void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        animator.gameObject.GetComponentInChildren<TextMesh>().text = this.GetType().ToString();
-        _explorerDetector = animator.gameObject.GetComponentInChildren<ExplorerDetector>();
-
-        if (_explorerDetector.CollidedMine.Flagged)
+        try
         {
-            animator.SetBool("MinesInView", false);
-            _explorerDetector.ResetDetector();
-            return;
-        }
+            if (pathWalker == null)
+                pathWalker = animator.gameObject.GetComponent<PathWalker>();
+            if (behaviourDisplay == null)
+                behaviourDisplay = animator.gameObject.GetComponentInChildren<TextMesh>();
+            if (explorerDetector == null)
+                explorerDetector = animator.gameObject.GetComponentInChildren<MineDetector>();
 
-        _explorerDetector.CollidedMine.Flagged = true;
-        SoundManager.Instance.PlaySound(Sound.Footman_As_You_Wish_Sound_Effect);
+            behaviourDisplay.text = $"{ GetType() }";
+
+            SoundManager.Instance.PlaySound(Sound.Footman_As_You_Wish_Sound_Effect);
+            
+            await pathWalker.WalkTo(explorerDetector.Mine.Position);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message);
+        }
     }
 
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        if (_explorerDetector.CollidedMine == null)
-        {
-            _explorerDetector.ResetDetector();
-            animator.SetBool("MinesInView", false);
-            return;
-        }
+        if (!pathWalker.Ended) return;
+        animator.SetBool("MinesInView", false);
+    }
+
+    public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
+        if(explorerDetector.Mine != null && animator.gameObject.transform.position == explorerDetector.Mine.Position)
+            explorerDetector.Mine.Flagged = true;
+        
+        explorerDetector.ResetDetector();
     }
 }

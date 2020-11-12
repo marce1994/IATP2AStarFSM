@@ -1,97 +1,70 @@
-﻿using System.Linq;
+﻿using System;
 using UnityEngine;
 
 public class MiningBehaviour : StateMachineBehaviour
 {
     private int collectedGold;
-    private Mine mine;
-    private Transform transform;
-    private Vector3[] path;
 
-    private int current;
+    private PathWalker pathWalker;
+    private TextMesh behaviourDisplay;
+    private MineDetector mineDetector;
 
-    override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    override public async void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        animator.gameObject.GetComponentInChildren<TextMesh>().text = this.GetType().ToString();
-
-        transform = animator.transform;
-        mine = GameManager.Instance.GetRandomFlaggedMine();
-
-        if (mine == null)
-            return;
-
-        SoundManager.Instance.PlaySound(Sound.Peasant_More_Work_Sound_Effect);
-        PathFinderManager.Instance.FindPath(transform.position, mine.Position).ContinueWith(result =>
+        try
         {
-            if (!result.IsFaulted)
+            if (pathWalker == null)
+                pathWalker = animator.gameObject.GetComponent<PathWalker>();
+            if (behaviourDisplay == null)
+                behaviourDisplay = animator.gameObject.GetComponentInChildren<TextMesh>();
+            if (mineDetector == null)
+                mineDetector = animator.gameObject.GetComponentInChildren<MineDetector>();
+
+            if (mineDetector.Mine == null)
             {
-                path = result.Result;
-                current = 0;
+                animator.SetBool("MinesInView", false);
+                return;
             }
-            else
-            {
-                Debug.LogWarning(result.Exception.Message);
-            }
-        });
-        collectedGold = 0;
+
+            await pathWalker.WalkTo(mineDetector.Mine.Position);
+            SoundManager.Instance.PlaySound(Sound.Peasant_More_Work_Sound_Effect);
+            behaviourDisplay.text = $"{ GetType() }";
+            collectedGold = animator.GetInteger("Gold");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message);
+        }
     }
 
     float mineTime = 0.25f;
     float mineCurrentTime = 0f;
+
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        if (path == null)
+        if (mineDetector.Mine == null && collectedGold < 10)
         {
-            OnStateEnter(animator, stateInfo, layerIndex);
+            animator.SetBool("MinesInView", false);
             return;
         }
-
-        if (transform.position == path.Last())
+        if (pathWalker.Ended)
         {
             mineCurrentTime += Time.deltaTime;
             if (mineCurrentTime < mineTime)
                 return;
 
-            if (mine != null && mine.CanMine() && collectedGold < 10)
+            if (mineDetector.Mine != null && mineDetector.Mine.CanMine() && collectedGold < 10)
             {
                 mineCurrentTime = 0f;
-                collectedGold += mine.CollectGold(1);
+                collectedGold += mineDetector.Mine.CollectGold(1);
                 return;
             }
-
-            if (collectedGold < 10)
-            {
-                path = null;
-                mine = GameManager.Instance.GetRandomFlaggedMine();
-                if (mine == null) return;
-
-                PathFinderManager.Instance.FindPath(transform.position, mine.Position).ContinueWith(result =>
-                {
-                    if (!result.IsFaulted)
-                    {
-                        path = result.Result;
-                        current = 0;
-                    }
-                    else
-                    {
-                        Debug.LogWarning(result.Exception.Message);
-                    }
-                });
-            }
-
             animator.SetInteger("Gold", collectedGold);
-
-            return;
         }
+    }
 
-        if (transform.position != path[current])
-        {
-            if (current == 0)
-                transform.position = path[current];
-
-            Vector3 pos = Vector3.MoveTowards(transform.position, path[current], Time.deltaTime * 10);
-            transform.position = pos;
-        }
-        else current = (current + 1) % path.Length;
+    public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
+        mineDetector.ResetDetector();
     }
 }

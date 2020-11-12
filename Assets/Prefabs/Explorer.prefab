@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6769183617948380011}
   - component: {fileID: 2966273515033183917}
+  - component: {fileID: 6035782119409137306}
   m_Layer: 0
   m_Name: Explorer
   m_TagString: Untagged
@@ -53,6 +54,18 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &6035782119409137306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1623565010286056755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92050e1e692c4424d9660432953a4df8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2771525896752740100
 GameObject:
   m_ObjectHideFlags: 0
@@ -62,9 +75,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8000943277008875502}
-  - component: {fileID: 8622947917786289470}
   - component: {fileID: 5547009351516018114}
-  - component: {fileID: 1931278941796445287}
+  - component: {fileID: 8517530869545612070}
   m_Layer: 0
   m_Name: Detector
   m_TagString: Untagged
@@ -86,18 +98,6 @@ Transform:
   m_Father: {fileID: 6769183617948380011}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8622947917786289470
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2771525896752740100}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd28964af93f3a84982d340f182d1379, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!60 &5547009351516018114
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -126,7 +126,7 @@ PolygonCollider2D:
     - - {x: 8, y: 2}
       - {x: 0, y: 0}
       - {x: 8, y: -2}
---- !u!114 &1931278941796445287
+--- !u!114 &8517530869545612070
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -135,9 +135,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2771525896752740100}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd28964af93f3a84982d340f182d1379, type: 3}
+  m_Script: {fileID: 11500000, guid: b3b3bc9b3f9e0a641a6f452bd52f5508, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shouldBeFlagged: 0
 --- !u!1 &3049955337052661488
 GameObject:
   m_ObjectHideFlags: 0
@@ -305,8 +306,8 @@ TextMesh:
   m_Anchor: 4
   m_Alignment: 1
   m_TabSize: 4
-  m_FontSize: 30
-  m_FontStyle: 0
+  m_FontSize: 60
+  m_FontStyle: 1
   m_RichText: 1
   m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
   m_Color:

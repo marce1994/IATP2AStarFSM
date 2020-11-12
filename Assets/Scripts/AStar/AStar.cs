@@ -6,7 +6,7 @@ namespace Assets.Scripts.AStar
 {
     public static class AStar
     {
-        public static IEnumerable<PathNode> FindPath(PathNode[,] nodes, PathNode start, PathNode end)
+        public static List<PathNode> FindPath(PathNode[,] nodes, PathNode start, PathNode end)
         {
             var open = new List<PathNode>() { start };
             var close = new List<PathNode>();
@@ -32,9 +32,10 @@ namespace Assets.Scripts.AStar
                 open.Remove(currentNode);
                 close.Add(currentNode);
 
+                var color = new Color(1,1,0,0.1f);
                 foreach (var neightor in currentNode.Neightbors)
                 {
-                    Debug.DrawLine(neightor.Position, currentNode.Position, Color.gray, 1f);
+                    Debug.DrawLine(neightor.Position, currentNode.Position, color, 2f);
 
                     if (close.Contains(neightor)) continue;
 
@@ -65,6 +66,8 @@ namespace Assets.Scripts.AStar
             PathNode pathNode = end;
             while (pathNode.parent != null)
             {
+                Debug.DrawLine(pathNode.Position, pathNode.parent.Position, Color.red, 2f);
+
                 pathNodes.Add(pathNode.parent);
                 pathNode = pathNode.parent;
             }
