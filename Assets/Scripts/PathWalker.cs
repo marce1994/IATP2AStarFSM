@@ -12,7 +12,9 @@ public class PathWalker : MonoBehaviour
 
     private Vector3[] _path;
     private int _currentPathPos;
-    private const int WALK_SPEED = 10;
+    private bool _calculating_path = false;
+    
+    public int WALK_SPEED = 10;
 
     public Vector3[] WalkPath
     {
@@ -46,6 +48,9 @@ public class PathWalker : MonoBehaviour
     {
         get
         {
+            if (_calculating_path)
+                return false;
+
             return WalkPath.Any()? transform.position == _path.Last() : true;
         }
     }
@@ -53,6 +58,7 @@ public class PathWalker : MonoBehaviour
     private Color debugPathColor;
     public async Task WalkTo(Vector3 position)
     {
+        _calculating_path = true;
         debugPathColor = Random.ColorHSV();
         debugPathColor.a = 1f;
 
@@ -61,10 +67,13 @@ public class PathWalker : MonoBehaviour
         if (path == null)
         {
             Debug.Log("No hay un camino para llegar al destino");
+            _calculating_path = false;
             return;
         }
 
         WalkPath = path;
+
+        _calculating_path = false;
     }
 
     private void OnDrawGizmos()

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4190926604773838549}
   - component: {fileID: 4190926604773838548}
   m_Layer: 0
-  m_Name: Miner
+  m_Name: WorkerSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -92,6 +92,7 @@ GameObject:
   - component: {fileID: 4190926605096332637}
   - component: {fileID: 4190926605096332626}
   - component: {fileID: -9076410198370825446}
+  - component: {fileID: 1899478797528519747}
   m_Layer: 0
   m_Name: Worker
   m_TagString: Untagged
@@ -147,6 +148,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92050e1e692c4424d9660432953a4df8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  WALK_SPEED: 10
+--- !u!114 &1899478797528519747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4190926605096332627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a09075f8033b0243a47caa7efcae45e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _Hp: 0
+  bloodPrefab: {fileID: 1438332318100511605, guid: 367782da20d51134d9282fdfd0bd49ce,
+    type: 3}
+  attack_range: 3
+  attack_speed: 1
+  health_speed: 1
+  view_range: 10
 --- !u!1 &7026980645461460431
 GameObject:
   m_ObjectHideFlags: 0
@@ -173,8 +194,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7026980645461460431}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 0.061042562, y: 0.061042562, z: 0.061042562}
   m_Children: []
   m_Father: {fileID: 4190926605096332637}
   m_RootOrder: 1

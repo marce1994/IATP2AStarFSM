@@ -8,8 +8,10 @@ public class UIManager : Singleton<UIManager>
     private Text otherDataText;
     private Button buy_worker;
     private Button buy_explorer;
+    private Button buy_wolf;
 
     private int workerCount = 1;
+    private int wolfCount = 0;
     private int explorerCount = 2;
     private int goldCollected = 0;
     private int flaggedMines = 0;
@@ -20,6 +22,16 @@ public class UIManager : Singleton<UIManager>
         set
         {
             explorerCount = value;
+            UpdateUI();
+        }
+    }
+
+    public int WolfCount
+    {
+        get { return wolfCount; }
+        set
+        {
+            wolfCount = value;
             UpdateUI();
         }
     }
@@ -70,6 +82,7 @@ public class UIManager : Singleton<UIManager>
 
         buy_worker = buttons.Single(x => x.name == "Worker");
         buy_explorer = buttons.Single(x => x.name == "Explorer");
+        buy_wolf = buttons.Single(x => x.name == "Wolf");
 
         buy_worker.onClick.AddListener(() =>
         {
@@ -80,6 +93,11 @@ public class UIManager : Singleton<UIManager>
         {
             GameManager.Instance.BuyExplorer();
         });
+
+        buy_wolf.onClick.AddListener(() =>
+        {
+            GameManager.Instance.BuyWolf();
+        });
     }
 
     private void UpdateUI()
@@ -88,6 +106,6 @@ public class UIManager : Singleton<UIManager>
         buy_worker.interactable = GoldCollected >= GameManager.WORKER_COST;
 
         textInterfaceLeft.text = $"Gold: {goldCollected} \nFlaggedMines: {flaggedMines}";
-        textInterfaceRight.text = $"Workers: {workerCount} \nExplorers: {explorerCount}";
+        textInterfaceRight.text = $"Workers: {workerCount} \nExplorers: {explorerCount} \n Wolves: {wolfCount}";
     }
 }

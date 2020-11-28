@@ -8,7 +8,13 @@ public enum Sound {
     Footman_As_You_Wish_Sound_Effect,
     Footman_Yes_My_Lord_Sound_Effect,
     Peasant_More_Work_Sound_Effect,
-    Peasant_Yes_My_Lord_Sound_Effect
+    Peasant_Yes_My_Lord_Sound_Effect,
+    Footman_Attack,
+    Footman_Dead,
+    Footman_Aggro,
+    Wolf_Dead,
+    Wolf_Attack,
+    Wolf_Aggro
 }
 
 [Serializable]

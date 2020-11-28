@@ -35,8 +35,7 @@ namespace Assets.Scripts.AStar
                 var color = new Color(1,1,0,0.1f);
                 foreach (var neightor in currentNode.Neightbors)
                 {
-                    Debug.DrawLine(neightor.Position, currentNode.Position, color, 2f);
-
+                    //Debug.DrawLine(neightor.Position, currentNode.Position, color, 2f);
                     if (close.Contains(neightor)) continue;
 
                     int tentativeGCost = currentNode.GetGCost(neightor);
@@ -66,8 +65,7 @@ namespace Assets.Scripts.AStar
             PathNode pathNode = end;
             while (pathNode.parent != null)
             {
-                Debug.DrawLine(pathNode.Position, pathNode.parent.Position, Color.red, 2f);
-
+                //Debug.DrawLine(pathNode.Position, pathNode.parent.Position, Color.red, 2f);
                 pathNodes.Add(pathNode.parent);
                 pathNode = pathNode.parent;
             }

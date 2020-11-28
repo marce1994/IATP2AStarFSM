@@ -28,8 +28,8 @@ public class PathFinderManager : Singleton<PathFinderManager>
     {
         get
         {
-            var walkable_nodes = nodes.Cast<PathNode>().Where(x => x.walkable);
-            var random_node = walkable_nodes.ElementAt(UnityEngine.Random.Range(0, walkable_nodes.Count() - 1));
+            IEnumerable<PathNode> walkable_nodes = nodes.Cast<PathNode>().Where(x => x.walkable);
+            PathNode random_node = walkable_nodes.ElementAt(UnityEngine.Random.Range(0, walkable_nodes.Count() - 1));
             return random_node.Position;
         }
     }
@@ -37,8 +37,8 @@ public class PathFinderManager : Singleton<PathFinderManager>
 
     private Vector3[] RescueOldCalculation(Vector3 origin, Vector3 destiny)
     {
-        var key = new Tuple<Vector3, Vector3>(origin, destiny);
-        var keyReversed = new Tuple<Vector3, Vector3>(destiny, origin);
+        Tuple<Vector3, Vector3> key = new Tuple<Vector3, Vector3>(origin, destiny);
+        Tuple<Vector3, Vector3> keyReversed = new Tuple<Vector3, Vector3>(destiny, origin);
 
         if (oldUsedPaths.ContainsKey(key))
             return oldUsedPaths[key];
@@ -51,7 +51,7 @@ public class PathFinderManager : Singleton<PathFinderManager>
     public Task<Vector3[]> FindRandomPath(Vector3 origin)
     {
         PathNode[,] nodes_clone = (PathNode[,])nodes.Clone();
-        var listNodes = nodes_clone.Cast<PathNode>().Where(x => x.walkable).ToList();
+        List<PathNode> listNodes = nodes_clone.Cast<PathNode>().Where(x => x.walkable).ToList();
         return FindPath(origin, listNodes.ElementAt(UnityEngine.Random.Range(0, listNodes.Count - 1)).Position);
     }
 
@@ -63,7 +63,7 @@ public class PathFinderManager : Singleton<PathFinderManager>
         PathNode origNode = GetClosest(origin, listNodes);
         PathNode destNode = GetClosest(destiny, listNodes);
 
-        var rescuedPath = RescueOldCalculation(origin, destiny);
+        Vector3[] rescuedPath = RescueOldCalculation(origin, destiny);
 
         if (rescuedPath != null)
         {
@@ -74,7 +74,7 @@ public class PathFinderManager : Singleton<PathFinderManager>
 
         List<PathNode> path = AStar.FindPath(nodes_clone, origNode, destNode);
 
-        var key = new Tuple<Vector3, Vector3>(origin, destiny);
+        Tuple<Vector3, Vector3> key = new Tuple<Vector3, Vector3>(origin, destiny);
         if (!oldUsedPaths.ContainsKey(key))
         {
             oldUsedPaths.Add(key, path.Select(x => x.Position).ToArray());
@@ -126,11 +126,12 @@ public class PathFinderManager : Singleton<PathFinderManager>
     {
         nodes = new PathNode[sizeX, sizeZ];
 
-        NoiseGenerator noiseGenerator = new NoiseGenerator(sizeX, sizeZ);
-
-        noiseGenerator.offsetX = UnityEngine.Random.Range(100, 99999);
-        noiseGenerator.offsetY = UnityEngine.Random.Range(100, 99999);
-        noiseGenerator.scale = 5f;
+        NoiseGenerator noiseGenerator = new NoiseGenerator(sizeX, sizeZ)
+        {
+            offsetX = UnityEngine.Random.Range(100, 99999),
+            offsetY = UnityEngine.Random.Range(100, 99999),
+            scale = 5f
+        };
 
         noise = noiseGenerator.GetNoise();
 

@@ -11,7 +11,10 @@ public class GameManager : Singleton<GameManager>
 
     private int Gold
     {
-        get { return _gold; }
+        get
+        {
+            return _gold;
+        }
         set
         {
             _gold = value;
@@ -19,20 +22,24 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    private List<Mine> mines = new List<Mine>();
+    private readonly List<Mine> mines = new List<Mine>();
 
     public float instantiateMineTime = 10f;
     public float instantiateWorkerTime = 10f;
+    public float instantiateWoldTime = 20f;
     public GameObject minePrefab;
     public GameObject workerPrefab;
     public GameObject explorerPrefab;
     public GameObject homePrefab;
+    public GameObject wolfPrefab;
 
     public GameObject nonWalkableTilePrefab;
     public GameObject walkableTilePrefab;
 
     public static int WORKER_COST = 10;
     public static int EXPLORER_COST = 15;
+
+    public List<GameObject> Creatures { get; } = new List<GameObject>();
 
     private void Start()
     {
@@ -47,15 +54,39 @@ public class GameManager : Singleton<GameManager>
     internal void BuyWorker()
     {
         Gold -= WORKER_COST;
-        Instantiate(workerPrefab);
+        Creatures.Add(Instantiate(workerPrefab));
         UIManager.Instance.WorkerCount++;
+    }
+
+    internal void BuyWolf()
+    {
+        Creatures.Add(Instantiate(wolfPrefab));
+        UIManager.Instance.WolfCount++;
     }
 
     internal void BuyExplorer()
     {
         Gold -= EXPLORER_COST;
-        Instantiate(explorerPrefab);
+        Creatures.Add(Instantiate(explorerPrefab));
         UIManager.Instance.ExplorerCount++;
+    }
+
+    public void KillCreature(GameObject creature_go)
+    {
+        if (!Creatures.Remove(creature_go))
+        {
+            Debug.LogWarning("creature doesnt exist");
+        }
+        else
+        {
+            if (creature_go.name.Contains("Worker"))
+                UIManager.Instance.WorkerCount--;
+            if (creature_go.name.Contains("Explorer"))
+                UIManager.Instance.ExplorerCount--;
+            if (creature_go.name.Contains("Enemy"))
+                UIManager.Instance.WolfCount--;
+            Destroy(creature_go);
+        }
     }
 
     public Mine GetCollidedMine(GameObject collidedMine)
@@ -65,6 +96,7 @@ public class GameManager : Singleton<GameManager>
 
     private void Awake()
     {
+        Creatures.AddRange(FindObjectsOfType<GameObject>().Where(x => x.GetComponent<Creature>() != null));
         StartCoroutine(InstantiateHome());
         StartCoroutine(MineInstantiator(instantiateMineTime));
     }
